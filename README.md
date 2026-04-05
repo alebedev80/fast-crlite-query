@@ -68,7 +68,7 @@ python3 scripts/get_full_params.py certificate.pem issuer.pem > input.txt
 The tool reads from `stdin` and requires a directory containing Mozilla's `.filter` and `.delta` files.
 
 ```bash
-cat input.txt | ./target/release/crlite-mass-check --db-dir /path/to/crlite_db --json
+cat input.txt | ./target/release/fast-crlite-query --db-dir /path/to/crlite_db --json
 ```
 
 **Input Format:**
