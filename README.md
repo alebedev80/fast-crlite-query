@@ -4,7 +4,7 @@ High-performance CLI utility for mass certificate revocation checking using Mozi
 
 ## Overview
 
-`fast-crlite-query` (also known as `crlite-mass-check`) provides a privacy-preserving and ultra-fast way to check SSL/TLS certificate revocation status locally. Unlike OCSP, it does not leak query data to third parties and can process millions of certificates per second.
+`fast-crlite-query` provides a privacy-preserving and ultra-fast way to check SSL/TLS certificate revocation status locally. Unlike OCSP, it does not leak query data to third parties and can process millions of certificates per second.
 
 This tool implements support for the modern **Clubcard/Ribbon** filter format and correctly handles **Signed Certificate Timestamps (SCTs)**, ensuring browser-level precision in revocation detection.
 
@@ -64,19 +64,24 @@ source venv/bin/activate
 python3 scripts/get_full_params.py certificate.pem issuer.pem > input.txt
 ```
 
-### 2. Run Mass Check
+### 2. Run Query
 The tool reads from `stdin` and requires a directory containing Mozilla's `.filter` and `.delta` files.
 
 ```bash
 cat input.txt | ./target/release/fast-crlite-query --db-dir /path/to/crlite_db --json
 ```
 
-**Input Format:**
-`<ISSUER_SPKI_SHA256_HEX> <SERIAL_HEX> <LOG_ID_HEX:TIMESTAMP_MS> ...`
+## Database Updates
 
-### 3. Understanding Statuses
-- `Revoked`: Certificate found in the filter/delta (definitely revoked).
-- `NotRevoked`: Certificate not found (considered valid within the current DB).
+CRLite filters are updated by Mozilla several times a day. To keep your local database current, you can use the official Mozilla [rust-query-crlite](https://github.com/mozilla/rust-query-crlite) utility.
+
+A helper script is provided in `scripts/update_db.sh`. It can be scheduled via `cron`:
+
+1.  Point the script to your `rust-query-crlite` binary and target DB directory.
+2.  Add a cron job (example in `etc/cron.d/fast-crlite-query`):
+    ```bash
+    0 */4 * * * root /path/to/fast-crlite-query/scripts/update_db.sh /path/to/rust-query-crlite /var/lib/crlite_db
+    ```
 
 ## Performance Note
 CRLite filters are updated by Mozilla several times a day. For maximum accuracy, ensure your local database is synchronized with the latest filters from Mozilla's servers.
