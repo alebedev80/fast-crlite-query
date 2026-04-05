@@ -1,13 +1,24 @@
 #!/bin/bash
-# scripts/update_db.sh - Fetch latest CRLite filters from Mozilla
 
-DB_DIR="${1:-./crlite_db}"
+# Пути
+DB_DIR="/root/crlite/rust-query-crlite/crlite_db"
+UPDATR_BIN="/root/crlite/rust-query-crlite/target/release/rust-query-crlite"
+
+# Создаем папку, если ее нет
 mkdir -p "$DB_DIR"
 
-# Official Mozilla CRLite endpoint (Ribbon/Clubcard format)
-# Note: In production, you would typically fetch the remote-settings dump
-# For now, this is a placeholder for the actual sync logic
-echo "Updating CRLite database in $DB_DIR..."
+# 1. Скачиваем обновления
+# Мы используем команду 'help', чтобы утилита просто выполнила цикл обновления и вышла
+$UPDATR_BIN --db "$DB_DIR" --update prod help > /dev/null 2>&1
 
-# Example fetch (placeholder)
-# curl -L -o "$DB_DIR/latest.filter" "https://firefox.settings.services.mozilla.com/v1/buckets/security-state/collections/crlite-filters/records"
+# 2. Проверяем результат
+if [ $? -eq 0 ]; then
+    echo "[$(date)] CRLite DB updated successfully in $DB_DIR"
+
+    # Опционально: удаляем старые файлы фильтров, которые старше 30 дней,
+    # чтобы папка не раздувалась бесконечно
+    find "$DB_DIR" -name "*.delta" -mtime +30 -delete
+else
+    echo "[$(date)] CRLite DB update failed!"
+    exit 1
+fi
