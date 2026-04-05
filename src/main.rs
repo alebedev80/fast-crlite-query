@@ -5,7 +5,6 @@ use std::fs;
 use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
 use std::convert::TryInto;
-use std::process::Command;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about = "Mass CRLite revocation checker")]
@@ -14,8 +13,6 @@ struct Args {
     db_dir: String,
     #[arg(short, long)]
     json: bool,
-    #[arg(long)]
-    update_db: bool,
 }
 
 #[derive(Serialize)]
@@ -28,22 +25,6 @@ struct CheckResult {
 
 fn main() {
     let args = Args::parse();
-
-    if args.update_db {
-        println!("Updating CRLite database...");
-        let status = Command::new("sh")
-            .arg("-c")
-            .arg(format!("./scripts/update_db.sh {}", args.db_dir))
-            .status()
-            .expect("Failed to execute update script");
-
-        if !status.success() {
-            eprintln!("Error: Update script failed with status {}", status);
-            std::process::exit(1);
-        }
-        return;
-    }
-
     let db_path = Path::new(&args.db_dir);
 
     let mut filter_files: Vec<PathBuf> = fs::read_dir(db_path)
