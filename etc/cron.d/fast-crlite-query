@@ -1,0 +1,3 @@
+# /etc/cron.d/fast-crlite-query: Update CRLite filters every 4 hours
+
+0 */4 * * * root /Users/alm/code/fast-crlite-query/scripts/update_db.sh /root/crlite/rust-create-cascade/target/release/rust-query-crlite /var/lib/crlite_db >> /var/log/crlite_update.log 2>&1

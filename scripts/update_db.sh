@@ -1,22 +1,30 @@
 #!/bin/bash
 
-# Пути
-DB_DIR="/root/crlite/rust-query-crlite/crlite_db"
-UPDATR_BIN="/root/crlite/rust-query-crlite/target/release/rust-query-crlite"
+# scripts/update_db.sh - Update CRLite filters using rust-query-crlite
 
-# Создаем папку, если ее нет
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <path_to_rust_query_crlite> <db_dir>"
+    exit 1
+fi
+
+UPDATE_BIN="$1"
+DB_DIR="$2"
+
+if [ ! -f "$UPDATE_BIN" ]; then
+    echo "Error: Binary not found at $UPDATE_BIN"
+    exit 1
+fi
+
 mkdir -p "$DB_DIR"
 
-# 1. Скачиваем обновления
-# Мы используем команду 'help', чтобы утилита просто выполнила цикл обновления и вышла
-$UPDATR_BIN --db "$DB_DIR" --update prod help > /dev/null 2>&1
+echo "[$(date)] Updating CRLite database in $DB_DIR using $UPDATE_BIN..."
 
-# 2. Проверяем результат
+# Execute update using the provided binary
+"$UPDATE_BIN" --db "$DB_DIR" --update prod help > /dev/null 2>&1
+
 if [ $? -eq 0 ]; then
     echo "[$(date)] CRLite DB updated successfully in $DB_DIR"
-
-    # Опционально: удаляем старые файлы фильтров, которые старше 30 дней,
-    # чтобы папка не раздувалась бесконечно
+    # Cleanup old delta files (older than 30 days)
     find "$DB_DIR" -name "*.delta" -mtime +30 -delete
 else
     echo "[$(date)] CRLite DB update failed!"
