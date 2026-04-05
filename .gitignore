@@ -1,0 +1,7 @@
+/target
+/venv
+.crush
+.idea
+Cargo.lock
+__pycache__
+*.pyc
